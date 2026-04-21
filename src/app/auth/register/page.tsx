@@ -4,28 +4,38 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres')
+      return
+    }
+
     setLoading(true)
-    setError('')
 
     try {
       await api.post('/auth/register', { name, email, password })
+      toast.success('Conta criada com sucesso!')
       const res = await api.post('/auth/login', { email, password })
       localStorage.setItem('token', res.data.token)
       localStorage.setItem('user', JSON.stringify(res.data.user))
-      router.push('/products')
-    } catch {
-      setError('Erro ao criar conta. Email pode já estar em uso.')
+      setTimeout(() => router.push('/products'), 1500)
+    } catch (err: any) {
+      toast.error(err.response?.data?.error ?? 'Erro ao criar conta')
     } finally {
       setLoading(false)
     }
@@ -33,60 +43,61 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto py-16">
-      <h1 className="text-2xl font-bold mb-8">Criar conta</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Nome</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Senha</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 font-medium mt-2"
-        >
-          {loading ? 'Criando conta...' : 'Criar conta'}
-        </button>
-      </form>
-
-      <p className="text-center text-gray-500 text-sm mt-6">
-        Já tem conta?{' '}
-        <Link href="/auth/login" className="text-black font-medium hover:underline">
-          Entrar
-        </Link>
-      </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Criar conta</CardTitle>
+          <CardDescription>Preencha os dados para se cadastrar</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <span className="text-xs text-muted-foreground">Mínimo 6 caracteres</span>
+            </div>
+            <Button type="submit" disabled={loading} className="mt-2 w-full">
+              {loading ? 'Criando conta...' : 'Criar conta'}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="justify-center">
+          <p className="text-sm text-muted-foreground">
+            Já tem conta?{' '}
+            <Link href="/auth/login" className="text-foreground font-medium hover:underline">
+              Entrar
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   )
 }

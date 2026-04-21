@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Geist } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import { Toaster } from '@/components/ui/sonner'
 
-const inter = Inter({ subsets: ['latin'] })
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 
 export const metadata: Metadata = {
   title: 'E-commerce',
@@ -13,11 +14,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
+      <body className={geist.variable}>
         <Navbar />
         <main className="max-w-6xl mx-auto px-4 py-8">
           {children}
         </main>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   )
